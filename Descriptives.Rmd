@@ -1,0 +1,75 @@
+---
+title: "descriptives"
+author: "TheresaFitz"
+date: "21 Februar 2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("xtable")
+#install.packages("stargazer")
+#install.packages("pander")
+#install.packages("tables")
+#install.packages("reporttools")
+
+#library(xtable)
+library(reporttools)
+library(stargazer)
+library(dplyr)
+#library(pander)
+#library(tables)
+
+
+load("acs0316ssc.Rda")
+```
+
+```{r, subsets}
+ssetgay<-dplyr::filter(acs0316sscnew, acs0316sscnew$gay==1)
+ssetles<-dplyr::filter(acs0316sscnew, acs0316sscnew$les==1)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+\begin(longtable)
+```{r, descriptivetable1}
+#create one variable sex_orient with levels gay and les
+acs0316sscnew<-acs0316sscnew %>% mutate(sex_orient = case_when(gay==1 ~ 'gay', les==1 ~ 'les'))
+
+#create one variable educ_level with levels lths, hs and mths
+acs0316sscnew<-acs0316sscnew %>% mutate(educ_level = case_when(educd<=61 ~ "lths", educd>=63 & educd<=71 ~ "hs", educd>71 ~ "mths"))
+
+#create one variable children with levels 0-1, 2-5 and 6-17 and 0 if no child
+acs0316sscnew<-acs0316sscnew %>% mutate(children = ifelse(child0to1==1 , "0-1", ifelse(child2to5==1, "2-5", ifelse(child6to17==1, "6-17", 0))))
+
+vars0<-with(acs0316sscnew, data.frame('Sexual orientation'= factor(acs0316sscnew$sex_orient, levels = c('gay', 'les'), labels = c('gay', 'lesbian')), 'Age category'= factor(acs0316sscnew$age_cat, levels = 1:5, labels = c('<25 years', '25-34 years', '35-44 years', '45-64 years', '65+ years')), 'Race'= factor(acs0316sscnew$race, levels = 1:9, labels = c('White', 'Black/African American/Negro', 'American Indian or Alaska Native', 'Chinese', 'Japanese', 'Other Asian or Pacific Islander', 'Other race, nec', 'Two major races', 'Three or more major races')), 'Hispanic ethnicity'= factor(acs0316sscnew$hispan, levels = 0:4, labels = c('Not Hispanic', 'Mexican', 'Puerto Rican', 'Cuban', 'Other')), 'Educational attainment'= factor(acs0316sscnew$educ_level, levels = c("lths", "hs", "mths"), labels = c("No diploma", "Highschool", "Higher education")), 'Employment'= factor(acs0316sscnew$labforce, levels = 0:2, labels = c("N/A", "Not in labor force", "In labor force")), "Children"= factor(acs0316sscnew$children, levels = c("0-1", "2-5", "6-17", "0"), labels = c("Child 0-1 years", "Child 2-5 years", "Child 6-17 years", "No children")), check.names = FALSE))
+
+attach(vars0, warn.conflicts = FALSE)
+
+vars1<-vars0[, c("Sexual orientation","Age category","Race","Hispanic ethnicity", "Educational attainment","Employment","Children")]
+
+testtable<-tableNominal(vars=vars1, group = `Sexual orientation`, lab="tab: nominal1", longtable=TRUE)
+
+print(testtable, comment=FALSE)
+```
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE, results='asis'}
+#testtable <- stargazer(subset(acs0316sscnew[c("age", "race", "hispan", "educd", "labforce", "inctot", "child0to1", "child2to5", "child6to17", "age_cat", "edyrs", "exp", "age_cat_p")], type="latex", title="Testtable", style="default", digits=1, out="testdescriptives.htm"))
+#print(testtable)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
